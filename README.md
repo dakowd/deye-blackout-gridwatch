@@ -152,6 +152,47 @@ journalctl -u deyeblackoutgridwatch.service -f
 
 With this, the controller starts automatically on boot and restarts itself if it ever crashes — exactly what you want for something watching your power setup while you're away.
 
+### Running on a NAS (Docker)
+
+For NAS devices with Docker support (e.g. UGREEN DXP series running UGOS Pro, Synology, QNAP), a `Dockerfile` and `docker-compose.yml` are included. This also works identically on a Windows/Mac/Linux machine with Docker Desktop/Engine installed — Docker packages the app the same way regardless of the host OS, though a laptop that sleeps or shuts down isn't a realistic place to run this long-term; a NAS or Raspberry Pi that's always on is the real target.
+
+**1. Get the project onto your NAS.** Easiest via SSH (enable it in your NAS's control panel first):
+
+```bash
+ssh your-user@your-nas-ip
+git clone <your-repo-url>
+cd deye-blackout-gridwatch
+```
+
+(No git on the NAS? Upload a zip of the repo through your NAS's File Manager/web UI instead, then extract it there.)
+
+**2. Set up your config and persistent files:**
+
+```bash
+cp .env.example .env
+nano .env             # fill in your real credentials and values
+mkdir -p logs
+touch .token_cache.json
+```
+
+**3. Edit `docker-compose.yml`** and set `TZ` to your actual timezone (e.g. `Asia/Manila`, `America/New_York`). This matters — `ACTIVE_START_TIME`/`ACTIVE_END_TIME` are compared against local time, and a container defaults to UTC if you don't set this.
+
+**4. Build and run:**
+
+```bash
+docker compose up -d --build
+```
+
+**5. Check on it:**
+
+```bash
+docker compose logs -f
+```
+
+The container restarts automatically on failure or NAS reboot (`restart: unless-stopped`), and `logs/` + `.token_cache.json` are mounted from the NAS's own filesystem, so they survive container rebuilds.
+
+If your NAS's Docker UI (e.g. UGOS Pro's Docker/Container Manager) supports importing a Compose project directly, you can point it at this same `docker-compose.yml` instead of using the CLI — the steps above (`.env`, `logs/`, `.token_cache.json`, correct `TZ`) still apply either way.
+
 ## Project structure
 
 | File | Purpose |
@@ -162,6 +203,8 @@ With this, the controller starts automatically on boot and restarts itself if it
 | `test_read.py` | One-off script to verify auth and explore your account's stations/devices/telemetry |
 | `.env.example` | Template for required configuration — copy to `.env` and fill in |
 | `deploy/deyeblackoutgridwatch.service` | systemd unit file for running the controller persistently on a Raspberry Pi / Linux box |
+| `Dockerfile` / `docker-compose.yml` | For running on a NAS or any Docker host (see [Running on a NAS](#running-on-a-nas-docker)) |
+| `.dockerignore` | Keeps secrets and local artifacts (`.env`, logs, token cache) out of the built image |
 
 ## Design notes / known limitations
 

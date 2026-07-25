@@ -1,0 +1,19 @@
+services:
+  deye-blackout-gridwatch:
+    build: .
+    container_name: deye-blackout-gridwatch
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # IMPORTANT: set this to your actual timezone. ACTIVE_START_TIME /
+      # ACTIVE_END_TIME are compared against local time -- if this is wrong,
+      # the active window will be off by however many hours your TZ differs
+      # from UTC (the container's default without this set).
+      - TZ=Asia/Singapore
+    volumes:
+      # Persist logs and the auth token cache across container
+      # restarts/rebuilds -- without these, both reset every time the
+      # container is recreated.
+      - ./logs:/app/logs
+      - ./.token_cache.json:/app/.token_cache.json
