@@ -1,0 +1,17 @@
+
+
+# Secrets -- never commit these
+.env
+
+# Cached auth token
+.token_cache.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS cruft
+.DS_Store
+Thumbs.db

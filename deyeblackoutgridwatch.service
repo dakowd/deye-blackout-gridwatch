@@ -1,0 +1,21 @@
+[Unit]
+Description=DeyeBlackoutGridWatch - Deye grid-aware charge controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Change these two to match where you actually cloned the repo and which user runs it
+User=pi
+WorkingDirectory=/home/pi/deye-blackout-gridwatch
+ExecStart=/home/pi/deye-blackout-gridwatch/.venv/bin/python3 controller.py
+
+Restart=on-failure
+RestartSec=15
+
+# Sends stdout/stderr (the controller's log output) to the systemd journal
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
